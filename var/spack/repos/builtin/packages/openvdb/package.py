@@ -10,31 +10,26 @@ class Openvdb(CMakePackage):
     url      = "https://github.com/AcademySoftwareFoundation/openvdb/archive/v7.1.0.tar.gz"
     git      = "https://github.com/AcademySoftwareFoundation/openvdb.git"
 
-    # FIXME: Add a list of GitHub accounts to
-    # notify when the package is updated.
+    # Github account name for Drew.Whitehouse@gmail.com
     maintainers = ['eloop']
 
-    # do we need a python2 variant?
-    #depends_on('python@2.7.15')
-    #depends_on('python@2.7.15')
-    #depends_on('py-numpy@1.16')
-
-    version('master', branch='master')
+    version('develop', branch='develop')
     version('7.1.0', '5c93246de7093475a4f58032b68552cf61d282e8')
 
     variant('python', default=False, description='Build the pyopenvdb python extension')
-
+    depends_on('py-numpy', when='+python')
     extends('python', when='+python')
+    # For python2 these work well.
+    #depends_on('python@2.7.15')
+    #depends_on('py-numpy@1.16')
 
     depends_on('intel-tbb')
     depends_on('ilmbase')
     depends_on('openexr')
     depends_on('c-blosc')
     depends_on('boost+iostreams+system', when='~python')
-    depends_on('python@3.7.4', when='+python')
     depends_on('boost+iostreams+system+python+numpy', when='+python')
-    depends_on('py-numpy', when='+python')
-    depends_on('git', type='build', when='@master')
+    depends_on('git', type='build', when='@develop')
 
     def cmake_args(self):
 
@@ -58,8 +53,14 @@ class Openvdb(CMakePackage):
         prefix = self.prefix
 
         if '+python' in spec:
-            # this is where it's currently be put by the OpenVDB cmake installation
+
+            # This is where the python extension is being put by
+            # OpenVDB's cmake.
             src = os.path.join(os.path.split(site_packages_dir)[0],'pyopenvdb.so')
+
+            # We want it in site-packages so "spack load openvdb" and
+            # spack environments can work properly.
             dst = os.path.join(site_packages_dir,'pyopenvdb.so')
+
             mkdirp(site_packages_dir)
             os.rename(src, dst)
