@@ -13,7 +13,7 @@ class Openvdb(CMakePackage):
     """OpenVDB - a sparse volume data format."""
 
     homepage = "https://github.com/AcademySoftwareFoundation/openvdb"
-    url = "https://github.com/AcademySoftwareFoundation/openvdb/archive/v10.0.0.tar.gz"
+    url = "https://github.com/AcademySoftwareFoundation/openvdb/archive/v11.0.0.tar.gz"
     git = "https://github.com/AcademySoftwareFoundation/openvdb.git"
 
     # Github account name for drew@lagrangian.xyz
@@ -22,6 +22,7 @@ class Openvdb(CMakePackage):
     license("MPL-2.0")
 
     version("develop", branch="develop")
+    version("11.0.0", sha256="6314ff1db057ea90050763e7b7d7ed86d8224fcd42a82cdbb9c515e001b96c74")
     version("10.0.0", sha256="6d4f6b5ccd0f9d35a4886d9a51a98c97fa314f75bf9737c5121e91b706e2db70")
     version("9.1.0", sha256="914ee417b4607c75c95b53bc73a0599de4157c7d6a32e849e80f24e40fb64181")
     version("8.2.0", sha256="d2e77a0720db79e9c44830423bdb013c24a1cf50994dd61d570b6e0c3e0be699")
@@ -39,22 +40,37 @@ class Openvdb(CMakePackage):
     variant("ax", default=False, description="Build the AX extension (untested).")
 
     depends_on("ilmbase", when="@8:9")
-    depends_on("ilmbase@2.3:3.1", when="@10:")
+    depends_on("ilmbase@2.3:3.1", when="@10")
+    depends_on("imath@3.1:", when="@11")
+
     depends_on("openexr", when="@8:9")
-    depends_on("openexr@2.3:3.1", when="@10:")
+    depends_on("openexr@2.3:3.1", when="@10")
+    depends_on("openexr@3.1:", when="@11:")
+
     depends_on("intel-tbb@:2020.1", when="@:8.1")
-    depends_on("intel-tbb@2021", when="@8.2:")
+    depends_on("intel-tbb@2020.2:2020.3", when="@8.2:")
+    depends_on("intel-tbb@2020.3", when="@11:")
+
     depends_on("zlib-api")
+
     depends_on("c-blosc@1.17.0")  # depends_on('c-blosc@1.5:')
+
     depends_on("py-numpy@1", when="@7:10 +python")
-    depends_on("boost+iostreams+system+python+numpy", when="+python")
-    depends_on("boost+iostreams+system", when="~python")
+    depends_on("py-numpy@1.23", when="@11: +python")
+    depends_on("py-pybind11", when="@11: +python")
+
+    depends_on("boost+iostreams+system", when="@7:10 ~python")
+    depends_on("boost+iostreams+system@1.79:1.80", when="@11 ~python")
+
+    depends_on("boost+iostreams+system+python+numpy", when="@7:10 +python")
+    depends_on("boost@1.79:1.80+iostreams+system+numpy", when="@11 +python") # they moved to pybind11, so no python
+
     extends("python", when="+python")
 
     # AX requires quite a few things, and hasn't been properly released
     # yet. I've only managed to build llvm@8.0.1 under centos8. It
     # looks like the next version of OpenVDB will support llvm@12.0.0.
-    depends_on("llvm@8.0.1", when="+ax")
+    depends_on("llvm@14", when="+ax")
     depends_on("bison", when="+ax")
     depends_on("flex", when="+ax")
     depends_on("git", type="build", when="@develop")
